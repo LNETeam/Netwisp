@@ -1,0 +1,12 @@
+tArgs = {...}
+term.clear()
+term.setCursorPos(1,1)
+if #tArgs == 0 then 
+	parallel.waitForAny(function() shell.run("shell") end,function() shell.run("ip-mon --start") end)
+	print("Exit stat: good")
+elseif #tArgs == 1 then
+	if tArgs[1] == "-m" then
+		parallel.waitForAny(function() shell.run("shell") end,function() shell.run("ip-mon --map") end)
+		print("Exit stat (mon): good")
+	end
+end
