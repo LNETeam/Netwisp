@@ -3,7 +3,6 @@
 --Object implemention credited to LYQYD
 
 new = {}
-
 --Private functions
 local function repairNetworkType(obj)
 	setmetatable(obj, {__index = network})
@@ -65,16 +64,14 @@ local function discoverMountedInterfaces(p_object)
 				if h.isOpen(i) then 
 					local s,r = int:AddPort(i)
 					if not s then error(r) end
-					
 				end
-				table.insert(interfaces,int)
 			end
+			table.insert(interfaces,int)
 			h = nil
 		end
 		p_object:AddInterfaceRange(interfaces)
 	end
-	error(to_string(interfaces))
-	write(textutils.serialize(interfaces))
+	
 end
 
 --Properties
