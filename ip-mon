@@ -10,6 +10,7 @@ elseif  #tArgs == 1 then
 	if tArgs[1] == "--imap" then --Network map option
 		local net = NetworkCollection.new.Network() --New Global network map object
 		net:StartMap() --Begin local and global map
+		error(textutils.serialize(net))
 		if (#net:GetComputerByID(os.GetComputerID()):GetMountedInterfaces() > 0) then --Find "mounted" interfaces
 			for k,v in ipairs(net:GetComputerByID(os.GetComputerID()):GetMountedInterfaces()) do --Foreach interface..
 				rednet.open(v:GetSide()) --Open the network
