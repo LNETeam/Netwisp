@@ -56,20 +56,25 @@ local function discoverMountedInterfaces(p_object)
 	end
 	if tablelength(mounted) > 0 then
 		interfaces = {}
-		for k,v in pairs(mounted) do
-			local int = new.Interface(k,p_object,k.IsWireless)
 
+		for k,v in pairs(mounted) do
+			local int = new.Interface(k,p_object,v.IsWireless)
 			local h = int:Mount()
 			for i=1,65535 do
 				if h.isOpen(i) then 
 					local s,r = int:AddPort(i)
-					if not s then error(r) end
+					--if not s then error(r) end
 				end
 			end
+
 			table.insert(interfaces,int)
 			h = nil
 		end
-		p_object:AddInterfaceRange(interfaces)
+		--p_object:AddInterfaceRange(interfaces)
+		--for k,v in ipairs(interfaces) do
+		--	p_object:AddInterface(interfaces[3])
+		--end
+		p_object.interfaces = interfaces --This will be changed. Temporary
 	end
 	
 end
@@ -113,8 +118,12 @@ local interface =
 {
 	AddPort = function(self,c)
 		local stat,r = pcall(function()
-			for s,f in ipairs(self.local_open_ports) do
-				if f == c then error("port with the same id has already been added",2) end
+			if (#self.local_open_ports > 0) then
+				for s,f in ipairs(self.local_open_ports) do
+					if f == c then error("port with the same id has already been added",2) end
+					table.insert(self.local_open_ports,c)
+				end
+			else
 				table.insert(self.local_open_ports,c)
 			end
 		end)
@@ -139,8 +148,12 @@ local computer =
 {
 	AddInterface = function(self,i)
 		local stat,r = pcall(function() 
-			for s,f in ipairs(self.interfaces) do
-				if f:GetUniqueID() == i:GetUniqueID() then error("interface with the same id has already been added",2) end
+			if (#self.interfaces > 0) then
+				for s,f in ipairs(self.interfaces) do
+					if f:GetUniqueID() == i:GetUniqueID() then error("interface with the same id has already been added",2) end
+					table.insert(self.interfaces,i)
+				end
+			else
 				table.insert(self.interfaces,i)
 			end
 		end)
@@ -148,12 +161,28 @@ local computer =
 	end,
 	AddInterfaceRange = function(self,...)
 		iRange = {...}
+
 		local stat,r = pcall(function()
-			
+			--print(textutils.serialize(self.interfaces))
 			for k,v in ipairs(iRange) do
-				for s,f in ipairs(self.interfaces) do
-					if f:GetUniqueID() == v:GetUniqueID() then error("interface with the same id has already been added",2) end
-					self:AddInterface(v)
+				
+				for i,p in ipairs(v) do
+					
+					if (#self.interfaces > 0) then
+						term.write("Page?")
+						read()
+						
+						for s,f in ipairs(self.interfaces) do
+							print(textutils.serialize(f))
+							if f:GetUniqueID() == p:GetUniqueID() then error("interface with the same id has already been added",2) end
+							self:AddInterface(p)
+						end
+					else
+
+						self:AddInterface(p)
+
+					end
+
 				end
 			end
 		end)
@@ -161,7 +190,7 @@ local computer =
 		return stat,r
 	end,
 	AnalyzeForInterfaces = function(self)
-		discoverMountedInterfaces(self)
+		 discoverMountedInterfaces(self)
 	end,
 	CloseAllInterfaces = function(self)
 		for k,v in ipairs(self.interfaces) do
@@ -183,7 +212,7 @@ local computer =
 	end,
 	OpenAllInterfaces = function(self)
 		for k,v in ipairs(self.interfaces) do
-			if not rednet.isOpen(v) then rednet.open(v) end
+			if not rednet.isOpen(v.local_side) then rednet.open(v.local_side) end
 		end
 		return true
 	end
