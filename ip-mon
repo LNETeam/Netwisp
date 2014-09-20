@@ -23,10 +23,10 @@ elseif  #tArgs == 1 then
 			for k,v in ipairs(net:GetComputerByID(os.getComputerID()):GetMountedInterfaces()) do --Foreach interface..
 				rednet.open(v:GetSide()) --Open the network
 				
-				local found = {rednet.lookup("ip-mon:netwisp","ip-mon")} -- Lookup all computers immediately connected that are ready for a netmap
+				local found = {rednet.lookup("ip-mon:netwisp")} -- Lookup all computers immediately connected that are ready for a netmap
 				if #found > 0 then --Um..
-
 					for k,v in ipairs(found) do --Loop through found clients
+						print(net:ContainsId(v))
 						if (not net:ContainsId(v)) then
 							rednet.send(v,"request:map", "ip-mon:netwisp") --Send a map request
 							local senderId,message,protocol = rednet.receive("ip-mon:netwisp",2) --increase if required
@@ -42,7 +42,7 @@ elseif  #tArgs == 1 then
 										if connection:IsMember(sId) then --If the message originated from paired computer
 											--net = NetworkCollection.RepairType(mge,"network") --Repair the returned network object to a usable state
 											net = textutils.unserialize(mge)
-
+											net = NetworkCollection.RepairType(net,"network")
 										end --Untrusted
 									end
 								end
@@ -79,7 +79,7 @@ elseif  #tArgs == 1 then
 		comp:AnalyzeForInterfaces()
 		local intfs = comp:GetMountedInterfaces() --Interfaces
 		comp:OpenAllInterfaces()
-		rednet.host("ip-mon:netwisp","ip-mon") --Host the waiting map protocol
+		rednet.host("ip-mon:netwisp","ip-mon:"..math.random()) --Host the waiting map protocol
 		local senderId, message, protocol = rednet.receive("ip-mon:netwisp") --Request
 		if message ~= nil then --If the message is something
 			if message == "request:map" then --If the message is to map
@@ -116,7 +116,7 @@ elseif #tArgs == 2 then --Mapping in progress.
 	for r,t in ipairs(home:GetMountedInterfaces()) do --Foreach interface..
 		rednet.open(t:GetSide()) --Open the network
 
-		local found = {rednet.lookup("ip-mon:netwisp","ip-mon")} -- Lookup all computers immediately connected that are ready for a netmap
+		local found = {rednet.lookup("ip-mon:netwisp")} -- Lookup all computers immediately connected that are ready for a netmap
 
 		if #found > 0 then --Um..
 			for k,v in ipairs(found) do --Loop through found clients
@@ -145,7 +145,7 @@ elseif #tArgs == 2 then --Mapping in progress.
 		rednet.close(t:GetSide()) --Close the side to prevent re-mapping (infinite recursion)
 	end
 	home:OpenAllInterfaces()
-	
+
 	rednet.send(tonumber(tArgs[2]),textutils.serialize(net),"ip-mon:netwisp")
 
 	home:CloseAllInterfaces()
