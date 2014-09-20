@@ -93,10 +93,20 @@ local binding =
 local network = 
 {
 	AddComputer = function(self,cObject)
+
+		
 		local stat,r = pcall(function()
-			for s,f in ipairs(self.computer_object) do
-				if f:GetID() == RepairType(cObject,"interface"):GetID() then error("computer with the same id has already been added",2) end
+
+			if (#self.computer_object > 0) then
+				for s,f in pairs(self.computer_object) do
+					print(textutils.serialize(cObject))
+					if f:GetID() == cObject:GetID() then error("computer with the same id has already been added",2) end
+					table.insert(self.computer_object,cObject)
+				end
+			else
+
 				table.insert(self.computer_object,cObject)
+				writw(textutils.serialize(self))
 			end
 		end)
 		return stat,r
@@ -109,6 +119,7 @@ local network =
 	end,
 	StartMap = function(self)
 		local comp = new.Computer(self)
+		
 		comp:AnalyzeForInterfaces()
 		self:AddComputer(comp)
 	end,
@@ -242,7 +253,7 @@ end
 function new.Computer(parent,parent_computer)
 	local temp = 
 	{
-		parent_network = parent,
+		--parent_network = parent,
 		parent_id = (parent_computer ~= nil) and parent_network.getComputerID() or os.getComputerID(),
 		id = os.getComputerID(),
 		label = os.getComputerLabel(),
