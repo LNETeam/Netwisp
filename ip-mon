@@ -8,6 +8,36 @@ tArgs = {...}
 	return string.gsub("[%(%)%.%%%+%-%*%?%[%]%^%$]",function (c) return "%" .. c end)
 end
 
+function SaveTable(Table)
+   local savedTables = {} -- used to record tables that have been saved, so that we do not go into an infinite recursion
+   local outFuncs = {
+      ['string']  = function(value) return string.format("%q",value) end;
+      ['boolean'] = function(value) if (value) then return 'true' else return 'false' end end;
+      ['number']  = function(value) return string.format('%f',value) end;
+   }
+   local outFuncsMeta = {
+      __index = function(t,k) error('Invalid Type For SaveTable: '..k) end      
+   }
+   setmetatable(outFuncs,outFuncsMeta)
+   local tableOut = function(value)
+      if (savedTables[value]) then
+         error('There is a cyclical reference (table value referencing another table value) in this set.');
+      end
+      local outValue = function(value) return outFuncs[type(value)](value) end
+      local out = '{'
+      for i,v in pairs(value) do out = out..'['..outValue(i)..']='..outValue(v)..';' end
+      savedTables[value] = true; --record that it has already been saved
+      return out..'}'
+   end
+   outFuncs['table'] = tableOut;
+   return tableOut(Table);
+end
+
+function LoadTable(Input)
+   -- note that this does not enforce anything, for simplicity
+   return assert(loadstring('return '..Input))()
+end
+
 if fs.exists("netwisp.data/NetworkCollection") then os.loadAPI("netwisp.data/NetworkCollection") else error("missing critical data type...\ncannot continue")end --Ensure they have the proper data type
 if #tArgs == 0 then
 	error("ip-mon: Expected mode",2) --Need something
@@ -107,13 +137,17 @@ elseif #tArgs == 2 then --Mapping in progress.
 	local net_base = textutils.unserialize(dat) --Unserialize the network object
 	local net = NetworkCollection.RepairType(net_base,"network") --Repair network object
 	
-
+	
 	local home = NetworkCollection.new.Computer(net,net:GetComputerByID(tArgs[2])) --Create new computer for (current) host with the global network and parent as parameters
+
 	home:AnalyzeForInterfaces() --Get interfaces
 
 	net:AddComputer(home)
 	net:AddCompletedId(os.getComputerID())
+
+	
 	for r,t in ipairs(home:GetMountedInterfaces()) do --Foreach interface..
+
 		rednet.open(t:GetSide()) --Open the network
 
 		local found = {rednet.lookup("ip-mon:netwisp")} -- Lookup all computers immediately connected that are ready for a netmap
@@ -122,19 +156,22 @@ elseif #tArgs == 2 then --Mapping in progress.
 			for k,v in ipairs(found) do --Loop through found clients
 
 				if (not net:ContainsId(v)) then
-
 					rednet.send(v,"request:map", "ip-mon:netwisp") --Send a map request
-					local senderId,message,protocol = rednet.recieve("ip-mon:netwisp",2) --increase if required
+					local senderId,message,protocol = rednet.receive("ip-mon:netwisp",2) --increase if required
 					if senderId ~= nil and message ~= nil then --Ensure that we got a genuine reply
 						if senderId == v then --If the computer that was sent to and the reply are the same
 							if message == "request:map:yes" then --The computer approves map
-								local connection = NetworkCollection.new.AuthenticationBinding(v,os.GetComputerID()) --New binding key. This is for future reference that it is indeed the intended host
+								local connection = NetworkCollection.new.AuthenticationBinding(v,os.getComputerID()) --New binding key. This is for future reference that it is indeed the intended host
 								rednet.send(v,"request:map:execute","ip-mon:netwisp") --Send execution command
 								sleep(0.5) --Wait for client to process
+
 								rednet.send(v,textutils.serialize(net),"ip-mon:netwisp") --Send serialized network object (yes, everything. Could consider sending a new network and merging the, but meh)
-								local sId,mge,pr = rednet.recieve("ip-mon:netwisp") --Wait for the map to finish. May take a VERY long time depending on the size of the network
-								if connection.IsMember(sId) then --If the message originated from paired computer
-									net = NetworkCollection.RepairType(mge,"network") --Repair the returned network object to a usable state
+								local sId,mge,pr = rednet.receive("ip-mon:netwisp") --Wait for the map to finish. May take a VERY long time depending on the size of the network
+								
+								if connection:IsMember(sId) then --If the message originated from paired computer
+									--net = NetworkCollection.RepairType(mge,"network") --Repair the returned network object to a usable state
+									net = textutils.unserialize(mge)
+									net = NetworkCollection.RepairType(net,"network")
 								end --Untrusted
 							end
 						end
@@ -145,10 +182,12 @@ elseif #tArgs == 2 then --Mapping in progress.
 		rednet.close(t:GetSide()) --Close the side to prevent re-mapping (infinite recursion)
 	end
 	home:OpenAllInterfaces()
-
 	rednet.send(tonumber(tArgs[2]),textutils.serialize(net),"ip-mon:netwisp")
 
 	home:CloseAllInterfaces()
 	--shell.run("ip-mon","--mon")
 end
+
+--Be3ta
+
 
