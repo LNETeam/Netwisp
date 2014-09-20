@@ -72,13 +72,16 @@ local network =
 {
 	AddComputer = function(self,cObject)
 
-		
 		local stat,r = pcall(function()
 
 			if (#self.computer_object > 0) then
+
 				for s,f in pairs(self.computer_object) do
-					if f:GetID() == cObject:GetID() then error("computer with the same id has already been added",2) end
-					table.insert(self.computer_object,cObject)
+					if f:GetID() == cObject:GetID() then error("computer with the same id has already been added",2)
+					else
+						table.insert(self.computer_object,cObject)
+						return
+					end
 				end
 			else
 
