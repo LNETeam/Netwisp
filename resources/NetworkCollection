@@ -4,29 +4,7 @@
 
 new = {}
 --Private functions
-local function repairNetworkType(obj)
-	setmetatable(obj, {__index = network})
-	for k,v in ipairs(obj.computer_object) do
-		setmetatable(v, {__index = computer})
-		for i,o in ipairs(interfaces) do
-			setmetatable(o, {__index = interface})
-		end
-	end
-	return obj
-end
 
-local function repairComputerType(obj)
-	setmetatable(obj, {__index = computer})
-	for k,v in ipairs(obj.interfaces) do
-		setmetatable(v, {__index = interface})
-	end
-	return obj
-end
-
-local function repairInterfaceType(obj)
-	setmetatable(obj, {__index = interface})
-	return obj
-end
 
 local function isSideRegistered(computer,side) --Removed network
 	sides = {computer:GetMountedInterfaces()} --List of interfaces
@@ -99,23 +77,44 @@ local network =
 
 			if (#self.computer_object > 0) then
 				for s,f in pairs(self.computer_object) do
-					print(textutils.serialize(cObject))
 					if f:GetID() == cObject:GetID() then error("computer with the same id has already been added",2) end
 					table.insert(self.computer_object,cObject)
 				end
 			else
 
 				table.insert(self.computer_object,cObject)
-				writw(textutils.serialize(self))
 			end
 		end)
 		return stat,r
 	end,
+	AddCompletedId = function(self,id)
+	local stat,r = pcall(function()
+			--print(textutils.serialize(self.interfaces)			
+			if (#self.completed_ids > 0) then
+				for k,v in pairs(self.completed_ids) do
+					if (v == id) then error("id already completed") end
+					table.insert(self.completed_ids,id)
+				end
+			else
+				table.insert(self.completed_ids,id)
+			end	
+		end)
+	end,
+	ContainsId = function(self,id)
+		for k,v in pairs(self.completed_ids) do
+			if (v == id) then return true end
+		end
+		return false
+	end,
 	GetComputerByID = function(self,id)
+
 		for s,f in ipairs(self.computer_object) do
 			if f:GetID() == id then return f end
 		end
 		return nil
+	end,
+	Reveal = function(self)
+		return self.seed_host_id
 	end,
 	StartMap = function(self)
 		local comp = new.Computer(self)
@@ -123,6 +122,7 @@ local network =
 		comp:AnalyzeForInterfaces()
 		self:AddComputer(comp)
 	end,
+
 } 
 
 local interface = 
@@ -157,6 +157,7 @@ local interface =
 
 local computer = 
 {
+
 	AddInterface = function(self,i)
 		local stat,r = pcall(function() 
 			if (#self.interfaces > 0) then
@@ -200,12 +201,14 @@ local computer =
 
 		return stat,r
 	end,
+	
 	AnalyzeForInterfaces = function(self)
 		 discoverMountedInterfaces(self)
 	end,
+	
 	CloseAllInterfaces = function(self)
 		for k,v in ipairs(self.interfaces) do
-			if rednet.isOpen(v) then rednet.close(v) end
+			if rednet.isOpen(v.local_side) then rednet.close(v.local_side) end
 		end
 		return true
 	end,
@@ -230,11 +233,26 @@ local computer =
 }
 --EOF Properties
 
+--Test
+
+local function repairNetworkType(obj)
+	setmetatable(obj, {__index = network})
+	for k,v in ipairs(obj.computer_object) do
+		setmetatable(v, {__index = computer})
+		for i,o in ipairs(v.interfaces) do
+			setmetatable(o, {__index = interface})
+		end
+	end
+	return obj
+end
+
+--End Test
+
 --Public Functions
 function new.AuthenticationBinding(keyA,keyB)
 	local temp = 
 	{
-		members = {},
+		members = {keyA,keyB},
 	}
 	setmetatable(temp, {__index = binding})
 	return temp
@@ -245,6 +263,7 @@ function new.Network()
 	{
 		computer_object = {},
 		seed_host_id = os.getComputerID(),
+		completed_ids = {}
 	}
 	setmetatable(temp, {__index = network})
 	return temp
