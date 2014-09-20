@@ -62,15 +62,18 @@ elseif  #tArgs == 1 then
 	elseif tArgs[1] == "--mon" then --Computer is currently listening
 		local comp = NetworkCollection.new.Computer(nil) --New temporary computer (to get the mounted interfaces)
 		comp:AnalyzeForInterfaces()
+		--NetworkCollection.writw(textutils.serialize(comp))
 		local intfs = comp:GetMountedInterfaces() --Interfaces
-		if (#intfs > 0) then --Uh..
-			for k,v in ipairs(intfs) do
-				rednet.open(v:GetSide()) --Open side
-			end
-		end --Should have all mounted sides open now
 
+		comp:OpenAllInterfaces()
+		--if (#intfs > 0) then --Uh..
+		--	for k,v in ipairs(intfs) do
+		--		rednet.open(v:GetSide()) --Open side
+		--	end
+		--end --Should have all mounted sides open now
+		
 		rednet.host("ip-mon:netwisp","ip-mon") --Host the waiting map protocol
-		local senderId, message, protocol = rednet.recieve("ip-mon:netwisp") --Request
+		local senderId, message, protocol = rednet.receive("ip-mon:netwisp") --Request
 		if message ~= nil then --If the message is something
 			if message == "request:map" then --If the message is to map
 				rednet.send(senderId,"request:map:yes","ip-mon:netwisp") --Send back with a confirmation
