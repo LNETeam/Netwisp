@@ -87,6 +87,30 @@ function mon()
 	end
 end
 
+function bgProcesor()
+
+	while true do
+		local event = { os.pullEvent() }
+		if event[ 1 ] == "kill_mon" then
+		  return
+		end
+	end
+end
+
+function termHandler()
+	parallel.waitForAny(bgProcesor,mon)
+	local sides = {"top","bottom","left","right","front","back"}
+	local mounted = {}
+	for k,v in ipairs(sides) do
+		if (peripheral.isPresent(v) and peripheral.getType(v) == "modem") then
+			rednet.close(v)
+
+		end
+	end
+	print("Process: ip-mon, stopped")
+	return
+end
+
 function SaveTable(Table)
    local savedTables = {} -- used to record tables that have been saved, so that we do not go into an infinite recursion
    local outFuncs = {
@@ -135,7 +159,6 @@ elseif  #tArgs == 1 then
 				local found = {rednet.lookup("ip-mon:netwisp")} -- Lookup all computers immediately connected that are ready for a netmap
 				if #found > 0 then --Um..
 					for k,v in ipairs(found) do --Loop through found clients
-						print(net:ContainsId(v))
 						if (not net:ContainsId(v)) then
 							rednet.send(v,"request:map", "ip-mon:netwisp") --Send a map request
 							local senderId,message,protocol = rednet.receive("ip-mon:netwisp",2) --increase if required
@@ -191,11 +214,11 @@ elseif #tArgs == 2 then --Mapping in progress.
 	if (tArgs[1] == "--mon" and tArgs[2] == "-bg") then
 		term.clear()
 		term.setCursorPos(1,1)
-		local ops = {function() shell.run("shell")end,mon}
+		local ops = {function() shell.run("shell")end,termHandler}
 		parallel.waitForAny(unpack(ops))
-		print("\nMap finished\n")
-	elseif (tArgs[1] == "--mon" and tArgs[2] == "-k") then
 		
+	elseif (tArgs[1] == "--mon" and tArgs[2] == "-k") then
+		os.queueEvent("kill_mon")
 	end
 end
 
