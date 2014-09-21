@@ -162,6 +162,7 @@ elseif  #tArgs == 1 then
 				rednet.close(v:GetSide()) --Close the side to prevent re-mapping (infinite recursion)
 			end
 			local  handle = io.open("netwisp.data/log_result.log","w")
+			net.completed_ids = nil
 			handle:write(textutils.serialize(net))
 			handle:close()
 			
@@ -199,4 +200,3 @@ elseif #tArgs == 2 then --Mapping in progress.
 end
 
 --Be3ta
-
