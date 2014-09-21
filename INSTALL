@@ -1,7 +1,8 @@
+
 install=
 {
   Dependencies = {},
-  InstallHierarchy = {{"/resources/NetworkCollection","/netwisp.data/NetworkCollection"},{"/ip-mon","ip-mon"}}
+  InstallHierarchy = {{"/resources/NetworkCollection","/netwisp.data/NetworkCollection"},{"ip-mon","ip-mon"},{"netwisp","netwisp"}}
   
 }
 return install
