@@ -138,7 +138,7 @@ elseif #tArgs == 2 then --Mapping in progress.
 	local net = NetworkCollection.RepairType(net_base,"network") --Repair network object
 	
 	
-	local home = NetworkCollection.new.Computer(net,net:GetComputerByID(tArgs[2])) --Create new computer for (current) host with the global network and parent as parameters
+	local home = NetworkCollection.new.Computer(net,tArgs[2]) --Create new computer for (current) host with the global network and parent as parameters
 
 	home:AnalyzeForInterfaces() --Get interfaces
 
