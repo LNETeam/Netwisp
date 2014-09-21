@@ -65,7 +65,7 @@ function lmap(message,sender)
 end
 
 function mon()
-	local comp = NetworkCollection.ew.Computer(nil) --New temporary computer (to get the mounted interfaces)
+	local comp = NetworkCollection.new.Computer(nil) --New temporary computer (to get the mounted interfaces)
 	comp:AnalyzeForInterfaces()
 	local intfs = comp:GetMountedInterfaces() --Interfaces
 	comp:OpenAllInterfaces()
