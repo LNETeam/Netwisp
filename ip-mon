@@ -1,8 +1,9 @@
 --Developed by LNETeam
 --Please respect Open Source and due credit
 --You can use this utility in your program as long as this banner remains
-
 tArgs = {...}
+local stat,err = pcall(function()
+
 
  function literalize(s)
 	return string.gsub("[%(%)%.%%%+%-%*%?%[%]%^%$]",function (c) return "%" .. c end)
@@ -92,6 +93,7 @@ function bgProcesor()
 	while true do
 		local event = { os.pullEvent() }
 		if event[ 1 ] == "kill_mon" then
+			os.queueEvent("terminated")
 		  return
 		end
 	end
@@ -109,36 +111,6 @@ function termHandler()
 	end
 	print("Process: ip-mon, stopped")
 	return
-end
-
-function SaveTable(Table)
-   local savedTables = {} -- used to record tables that have been saved, so that we do not go into an infinite recursion
-   local outFuncs = {
-      ['string']  = function(value) return string.format("%q",value) end;
-      ['boolean'] = function(value) if (value) then return 'true' else return 'false' end end;
-      ['number']  = function(value) return string.format('%f',value) end;
-   }
-   local outFuncsMeta = {
-      __index = function(t,k) error('Invalid Type For SaveTable: '..k) end      
-   }
-   setmetatable(outFuncs,outFuncsMeta)
-   local tableOut = function(value)
-      if (savedTables[value]) then
-         error('There is a cyclical reference (table value referencing another table value) in this set.');
-      end
-      local outValue = function(value) return outFuncs[type(value)](value) end
-      local out = '{'
-      for i,v in pairs(value) do out = out..'['..outValue(i)..']='..outValue(v)..';' end
-      savedTables[value] = true; --record that it has already been saved
-      return out..'}'
-   end
-   outFuncs['table'] = tableOut;
-   return tableOut(Table);
-end
-
-function LoadTable(Input)
-   -- note that this does not enforce anything, for simplicity
-   return assert(loadstring('return '..Input))()
 end
 
 if fs.exists("netwisp.data/NetworkCollection") then os.loadAPI("netwisp.data/NetworkCollection") else error("missing critical data type...\ncannot continue")end --Ensure they have the proper data type
@@ -222,4 +194,34 @@ elseif #tArgs == 2 then --Mapping in progress.
 	end
 end
 
---Be3ta
+end)
+
+if (not stat and not err == "Terminated") then
+	term.setBackgroundColor(colors.lightGray)
+	term.clear()
+	term.setCursorPos(1,2)
+	term.setBackgroundColor(colors.gray)
+	term.clearLine()
+	term.setCursorPos(1,3)
+	term.setBackgroundColor(colors.gray)
+	term.clearLine()
+	term.write(" Netwisp has encountered an error!")
+	term.setCursorPos(1,4)
+	term.setBackgroundColor(colors.gray)
+	term.clearLine()
+	term.setBackgroundColor(colors.lightGray)
+	term.setCursorPos(1,6)
+	print("Please try re-running netwisp. If you continue to experience crashes, please submit an issue to our Github repo for review.")
+	term.setCursorPos(1,10)
+	print("Exception:")
+	term.setTextColor(colors.black)
+	print("  "..err)
+	print()
+	term.setTextColor(colors.white)
+	print("Press any key to exit...")
+	os.pullEvent()
+	term.setBackgroundColor(colors.black)
+	term.clear()
+	term.setCursorPos(4,1)
+	print("Thank you for your patience!")
+end
