@@ -1,6 +1,7 @@
 --Developed by LNETeam
 --Please respect Open Source and due credit
 --You can use this utility in your program as long as this banner remains
+
 tArgs = {...}
 stat,err = pcall(function()
 
@@ -197,6 +198,7 @@ end
 end)
 
 if (not stat) then
+	if (err == "Terminated") then return end
 	term.setBackgroundColor(colors.lightGray)
 	term.clear()
 	term.setCursorPos(1,2)
