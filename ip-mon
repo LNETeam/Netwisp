@@ -2,7 +2,7 @@
 --Please respect Open Source and due credit
 --You can use this utility in your program as long as this banner remains
 tArgs = {...}
-local stat,err = pcall(function()
+stat,err = pcall(function()
 
 
  function literalize(s)
@@ -65,7 +65,7 @@ function lmap(message,sender)
 end
 
 function mon()
-	local comp = NetworkCollection.new.Computer(nil) --New temporary computer (to get the mounted interfaces)
+	local comp = NetworkCollection.ew.Computer(nil) --New temporary computer (to get the mounted interfaces)
 	comp:AnalyzeForInterfaces()
 	local intfs = comp:GetMountedInterfaces() --Interfaces
 	comp:OpenAllInterfaces()
@@ -196,7 +196,7 @@ end
 
 end)
 
-if (not stat and not err == "Terminated") then
+if (not stat) then
 	term.setBackgroundColor(colors.lightGray)
 	term.clear()
 	term.setCursorPos(1,2)
@@ -219,7 +219,7 @@ if (not stat and not err == "Terminated") then
 	print()
 	term.setTextColor(colors.white)
 	print("Press any key to exit...")
-	os.pullEvent()
+	os.pullEvent("key")
 	term.setBackgroundColor(colors.black)
 	term.clear()
 	term.setCursorPos(4,1)
