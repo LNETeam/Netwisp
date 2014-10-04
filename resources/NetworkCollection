@@ -276,6 +276,7 @@ function new.Computer(parent,parent_computer)
 	local temp = 
 	{
 		--parent_network = parent,
+		generation = 0,
 		parent_id = (parent_computer ~= nil) and parent_computer or os.getComputerID(),
 		id = os.getComputerID(),
 		label = os.getComputerLabel(),

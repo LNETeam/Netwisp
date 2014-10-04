@@ -164,7 +164,7 @@ elseif  #tArgs == 1 then
 			
 		end
 		print("Network map finished. View netobject at: netwisp.data/log_result.log or run 'ip-mon --view' to see user-friendly version. --STOP")
-	elseif tArgs[1] == "--view" then
+	elseif tArgs[1] == "--view" then --View the netobject
 		if fs.exists("netwisp.data/log_result.log") then
 			local data = io.open("netwisp.data/log_result.log","r")
 			local dt = data:read()
