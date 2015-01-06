@@ -5,11 +5,6 @@
 tArgs = {...}
 stat,err = pcall(function()
 
-
- function literalize(s)
-	return string.gsub("[%(%)%.%%%+%-%*%?%[%]%^%$]",function (c) return "%" .. c end)
-end
-
 function lmap(message,sender)
 	local net_base = textutils.unserialize(message) --Unserialize the network object
 	local net = NetworkCollection.RepairType(net_base,"network") --Repair network object
