@@ -173,10 +173,18 @@ elseif  #tArgs == 1 then
 			term.setTextColor(colors.white)
 			term.setBackgroundColor(colors.blue)
 			term.clear()
+			term.setBackgroundColor(colors.white)
+			term.setTextColor(colors.black)
 			term.setCursorPos(1,1)
-			print("Network Topology Map:")
-			print("-----------------------------")
-
+			term.clearLine()
+			term.setCursorPos(1,1)
+			local cmd = input()
+			while true do
+			   if (cmd == "list") then
+			       
+			   end
+			   sleep(.1) 
+			end
 		else
 			print("No network map file found. Run 'ip-mon --imap' to get network topology")			
 		end
